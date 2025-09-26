@@ -1,16 +1,13 @@
 var cvs = document.getElementById("mycanvas")
-
 var ctx = cvs.getContext("2d");
-var DEGREE =Math.PI/ 180
+var DEGREE = Math.PI / 180
 var frames = 0 ;
 
 var sprite = new Image();
 sprite.src = "img/59894.png"
 
-
 var SCORE= new  Audio();
 SCORE.src = "audio/point.mp3";
-
 var FLAP= new  Audio();
 FLAP.src = "audio/flap (1).mp3";
 var HIT= new  Audio();
@@ -19,7 +16,6 @@ var DIE= new  Audio();
 DIE.src = "audio/die.mp3";
 var START= new  Audio();
 START.src = "audio/swoosh.mp3";
-
 
 var state = {
     current :0,
@@ -38,13 +34,11 @@ function clickHandeler(){
             FLAP.play() ;
             bird.flap();
             break;
-    
         default:
             bird.rotation = 0;
-
             bird.speed = 0; 
             pipes.position = []; 
-             score.value = 0 ;
+            score.value = 0 ;
             state.current = state.getReady;
             break;
     }
@@ -54,12 +48,11 @@ document.addEventListener("keydown" , function(e){
     if (e.which==32) {
         clickHandeler();
         e.preventDefault();
-        
     }
 })
 
 var bg= {
-    sX : 0 ,
+    sX : 146.5 ,
     sY : 0 , 
     w:143 , 
     h: 255,
@@ -69,10 +62,10 @@ var bg= {
         ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h )
         ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X + 2*this.w , this.Y ,2*this.w ,2*this.h )
     }
-
 }
+
 var fg= {
-    sX : 292 ,
+    sX : 292.5 ,
     sY : 0 , 
     w:167 , 
     h: 55,
@@ -83,22 +76,16 @@ var fg= {
         ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h )
         ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X + 2*this.w , this.Y ,2*this.w ,2*this.h )
     }, 
-    update : function(){
+    update : function(delta){
         if(state.current == state.game){
-            this.X = (this.X -this.dx) % (this.w / 2);
+            this.X = (this.X - this.dx * (delta * 60)) % (this.w / 2);
         }
     }
 }
 
 var pipes = {
-    top  : {
-        sX :56  ,
-        sY:   321 ,
-    } ,
-    bottom : {
-        sX : 82 ,
-        sY:   321 ,
-    } , 
+    top  : { sX :56, sY:321 },
+    bottom : { sX : 82, sY:321 }, 
     w : 25 ,
     h:  162 ,
     dx :1.5,
@@ -109,18 +96,16 @@ var pipes = {
     draw: function(){
         for(let i=0 ; i< this.position.length;i++){
             let p =this.position[i]
-
             let topYPos = p.Y ;
             let bottomYPos= p.Y + this.h +this.gap ;
             ctx.drawImage(sprite,this.top.sX , this.top.sY , this.w , this.h, p.X, topYPos ,2*this.w ,2*this.h )
             ctx.drawImage(sprite,this.bottom.sX , this.bottom.sY , this.w , this.h, p.X, bottomYPos ,2*this.w ,2*this.h )
          }
     },
-    update: function(){
-        if(state.current != state.game){
-            return;
-        }
-        if(frames%150 == 0){
+    update: function(delta){
+        if(state.current != state.game) return;
+
+        if(frames % 300 == 0){
             this.position.push({
                 X:cvs.clientWidth,
                 Y: this.maxYPos + Math.random() * 100,
@@ -128,30 +113,29 @@ var pipes = {
         }
         for(let i=0 ; i< this.position.length;i++){
             let p =this.position[i]
-            p.X -=this.dx
+            p.X -= this.dx * (delta * 80);
+
             let bottomPipesPos = p.Y +this.h +this.gap ;
     
-            // تشخیص برخورد با لوله بالا
+            // برخورد با لوله بالا
             if(bird.X + bird.radius > p.X && 
                bird.X - bird.radius < p.X + 2*this.w && 
                bird.Y + bird.radius > p.Y && 
                bird.Y - bird.radius < p.Y + 2*this.h){
                 HIT.play();
-
                 state.current = state.over;
             }
             
-            // تشخیص برخورد با لوله پایین
-        
+            // برخورد با لوله پایین
             if(bird.X + bird.radius > p.X && 
                 bird.X - bird.radius < p.X + 2*this.w && 
                 bird.Y + bird.radius > bottomPipesPos && 
                 bird.Y - bird.radius < bottomPipesPos + 2*this.h){
                     HIT.play();
-                 state.current = state.over;
+                    state.current = state.over;
              }
              
-            // حذف لوله‌های خارج شده از صفحه
+            // حذف لوله‌های خارج از صفحه
             if(p.X + 2*this.w < 0){
                 this.position.shift();
                 score.value += 1 ;
@@ -164,10 +148,7 @@ var pipes = {
 }
 
 var getready= {
-    sX : 294,
-    sY : 57 , 
-    w:94 , 
-    h: 27,
+    sX : 294, sY : 57 , w:94 , h: 27,
     X : cvs.clientWidth/2-83,
     Y : cvs.clientHeight/2-170,
     draw:function() {
@@ -177,10 +158,7 @@ var getready= {
     }
 }
 var gameover= {
-    sX : 394,
-    sY : 58 , 
-    w:97 , 
-    h: 22,
+    sX : 394, sY : 58 , w:97 , h: 22,
     X : cvs.clientWidth/2-83,
     Y : cvs.clientHeight/2-170,
     draw:function() {
@@ -190,10 +168,7 @@ var gameover= {
     }
 }
 var getready1= {
-    sX : 291,
-    sY : 90 , 
-    w:59 , 
-    h: 50,
+    sX : 291, sY : 90 , w:59 , h: 50,
     X : cvs.clientWidth/2-59,
     Y : cvs.clientHeight/2-96,
     draw:function() {
@@ -203,10 +178,7 @@ var getready1= {
     }
 }
 var gameover1= {
-    sX : 2,
-    sY : 258 , 
-    w:115 , 
-    h: 58,
+    sX : 2, sY : 258 , w:115 , h: 58,
     X : cvs.clientWidth/2-105,
     Y : cvs.clientHeight/2-96,
     draw:function() {
@@ -216,10 +188,7 @@ var gameover1= {
     }
 }
 var gameover2= {
-    sX : 352,
-    sY : 117 , 
-    w:55 , 
-    h: 30,
+    sX : 352, sY : 117 , w:55 , h: 30,
     X : cvs.clientWidth/2-50,
     Y : cvs.clientHeight/2 +35,
     draw:function() {
@@ -241,36 +210,48 @@ var bird= {
      X : 50,
      Y : 150 ,
      speed: 0 ,
-     gravity: 0.07,
+     gravity: 0.25,
      animationIndex: 0,
      rotation: 0 ,
-     jump : 2.3, 
+     jump : 4.6, 
      radius: 12 ,
      draw:function() {
-        let bird = this. animation[this.animationIndex]
+        let bird = this.animation[this.animationIndex]
         ctx.save()
         ctx.translate(this.X , this.Y);
         ctx.rotate(this.rotation); 
          ctx.drawImage(sprite,bird.sX , bird.sY , this.w , this.h,  - this.w / 2 ,  - this.h /2 ,2*this.w ,2*this.h )
          ctx.restore();
      }, 
-     update : function(){
-        let period = state.current == state.getReady ? 20 :10 ;
-        this.animationIndex += frames % period ==0 ? 1 : 0;
-        this.animationIndex = this.animationIndex % this.animation.length  
+     update : function(delta){
+        // انیمیشن بال‌زدن
+        this._time = (this._time || 0) + delta;
+        let period = state.current == state.getReady ? 0.33 : 0.16; 
+        if(this._time > period){
+            this.animationIndex = (this.animationIndex + 1) % this.animation.length;
+            this._time = 0;
+        }
+
         if(state.current == state.getReady){
             this.Y =150;
         }
         else {
-            this.speed += this.gravity ; 
-            this.Y += this.speed;
+            this.speed += this.gravity * (delta * 60); 
+            this.Y += this.speed * (delta * 60);
             if (this.speed < this.jump){ 
-                this. rotation = -25 *DEGREE
+                this.rotation = -25 * DEGREE
             }else{
-                this. rotation = 90 *DEGREE;
+                this.rotation = 90 * DEGREE;
             }
         }
-        if(this.Y +this. h /2>= cvs.clientHeight - fg.h *2 ){
+        if(this.Y - this.h/2 <= 0){
+            this.Y = this.h/2;       // نگه داشتن پرنده روی سقف
+            this.speed = 0;           // توقف سرعت
+            DIE.play();
+            state.current = state.over; //  گیم اور
+        }
+    
+        if(this.Y + this.h /2>= cvs.clientHeight - fg.h *2 ){
             this.Y = cvs.clientHeight - fg.h *2 - this.h/2 
             this.animationIndex = 1;
             if (state.current == state.game){
@@ -293,34 +274,30 @@ var score = {
        if(state.current==state.game){
         ctx.lineWidth = 2;
         ctx.font = "35px IMPACT";
-
         ctx.fillText(this.value , cvs.width/2 , 50)
         ctx.strokeText(this.value , cvs.width/2 , 50)
-
        }else if(state.current==state.over){
         ctx.lineWidth = 2;
         ctx.font = "28px IMPACT";
         ctx.fillText(this.value ,230, 200)
         ctx.strokeText(this.value , 230 , 200)
-
-
         ctx.fillText(this.best , 230,248)
         ctx.strokeText(this.best ,230  , 248)
        }  
     }
 }
 
-function update(){
-    bird.update();
-    fg.update();
-    pipes.update();
+function update(delta){
+    bird.update(delta);
+    fg.update(delta);
+    pipes.update(delta);
 }
 
 function draw(){
     ctx.fillStyle = "#70c5ce"
     ctx.fillRect(0,0,cvs.clientWidth,cvs.clientHeight)
     bg.draw()
-    pipes.draw()  // لوله‌ها قبل از foreground رسم شوند
+    pipes.draw()  
     fg.draw()
     bird.draw()
     getready.draw()
@@ -331,11 +308,15 @@ function draw(){
     score.draw()
 }
 
-function animate (){
-    update()
-    draw()
-    frames++;
-    requestAnimationFrame(animate)
-}
+let lastTime = performance.now();
+function animate(currentTime){
+    const delta = (currentTime - lastTime) / 1000; 
+    lastTime = currentTime;
 
-animate()
+    update(delta);
+    draw();
+
+    frames++;
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
