@@ -38,6 +38,7 @@ function clickHandeler(){
             bird.rotation = 0;
             bird.speed = 0; 
             pipes.position = []; 
+            pipes._timeSinceLastPipe = 0;
             score.value = 0 ;
             state.current = state.getReady;
             break;
@@ -52,10 +53,7 @@ document.addEventListener("keydown" , function(e){
 })
 
 var bg= {
-    sX : 146.5 ,
-    sY : 0 , 
-    w:143 , 
-    h: 255,
+    sX : 146.5 , sY : 0 , w:143 , h: 255,
     X : 0,
     Y : cvs.clientHeight - 510 ,
     draw:function() {
@@ -65,10 +63,7 @@ var bg= {
 }
 
 var fg= {
-    sX : 292.5 ,
-    sY : 0 , 
-    w:167 , 
-    h: 55,
+    sX : 292.5 , sY : 0 , w:167 , h: 55,
     X : 0,
     dx :2 ,
     Y : cvs.clientHeight - 110 ,
@@ -88,10 +83,11 @@ var pipes = {
     bottom : { sX : 82, sY:321 }, 
     w : 25 ,
     h:  162 ,
-    dx :1.5,
+    dx :2.5,
     gap: 250,
     position : [],
     maxYPos : -150,
+    _timeSinceLastPipe:0,  // زمان سپری شده از آخرین لوله
 
     draw: function(){
         for(let i=0 ; i< this.position.length;i++){
@@ -105,15 +101,19 @@ var pipes = {
     update: function(delta){
         if(state.current != state.game) return;
 
-        if(frames % 300 == 0){
+        this._timeSinceLastPipe += delta;
+        let spawnInterval = 1.5; // ثانیه بین لوله‌ها
+        if(this._timeSinceLastPipe > spawnInterval){
             this.position.push({
                 X:cvs.clientWidth,
                 Y: this.maxYPos + Math.random() * 100,
-            })
+            });
+            this._timeSinceLastPipe = 0;
         }
+
         for(let i=0 ; i< this.position.length;i++){
             let p =this.position[i]
-            p.X -= this.dx * (delta * 80);
+            p.X -= this.dx * (delta * 60);
 
             let bottomPipesPos = p.Y +this.h +this.gap ;
     
@@ -127,12 +127,11 @@ var pipes = {
             }
             
             // برخورد با لوله پایین
-            if(bird.X + bird.radius > p.X && 
-                bird.X - bird.radius < p.X + 2*this.w && 
+            if(bird.X + bird.radius > p.X &&bird.X - bird.radius < p.X + 2*this.w && 
                 bird.Y + bird.radius > bottomPipesPos && 
                 bird.Y - bird.radius < bottomPipesPos + 2*this.h){
                     HIT.play();
-                    state.current = state.over;
+                 state.current = state.over;
              }
              
             // حذف لوله‌های خارج از صفحه
@@ -147,55 +146,20 @@ var pipes = {
     }
 }
 
-var getready= {
-    sX : 294, sY : 57 , w:94 , h: 27,
-    X : cvs.clientWidth/2-83,
-    Y : cvs.clientHeight/2-170,
-    draw:function() {
-        if (state.current == state.getReady) {
-            ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h )
-        }
-    }
+var getready= { sX : 294, sY : 57 , w:94 , h: 27, X : cvs.clientWidth/2-83, Y : cvs.clientHeight/2-170,
+    draw:function() { if (state.current == state.getReady) ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h ) }
 }
-var gameover= {
-    sX : 394, sY : 58 , w:97 , h: 22,
-    X : cvs.clientWidth/2-83,
-    Y : cvs.clientHeight/2-170,
-    draw:function() {
-        if (state.current == state.over) {
-            ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h )
-        }    
-    }
+var gameover= { sX : 394, sY : 58 , w:97 , h: 22, X : cvs.clientWidth/2-83, Y : cvs.clientHeight/2-170,
+    draw:function() { if (state.current == state.over) ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h ) }
 }
-var getready1= {
-    sX : 291, sY : 90 , w:59 , h: 50,
-    X : cvs.clientWidth/2-59,
-    Y : cvs.clientHeight/2-96,
-    draw:function() {
-        if (state.current == state.getReady) {
-            ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h )
-        }    
-    }
+var getready1= { sX : 291, sY : 90 , w:59 , h: 50, X : cvs.clientWidth/2-59, Y : cvs.clientHeight/2-96,
+    draw:function() { if (state.current == state.getReady) ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h ) }
 }
-var gameover1= {
-    sX : 2, sY : 258 , w:115 , h: 58,
-    X : cvs.clientWidth/2-105,
-    Y : cvs.clientHeight/2-96,
-    draw:function() {
-        if (state.current == state.over) {
-            ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h )
-        }      
-    }
+var gameover1= { sX : 2, sY : 258 , w:115 , h: 58, X : cvs.clientWidth/2-105, Y : cvs.clientHeight/2-96,
+    draw:function() { if (state.current == state.over) ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h ) }
 }
-var gameover2= {
-    sX : 352, sY : 117 , w:55 , h: 30,
-    X : cvs.clientWidth/2-50,
-    Y : cvs.clientHeight/2 +35,
-    draw:function() {
-        if (state.current == state.over) {
-            ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h )
-        }      
-    }
+var gameover2= { sX : 352, sY : 117 , w:55 , h: 30, X : cvs.clientWidth/2-50, Y : cvs.clientHeight/2 +35,
+    draw:function() { if (state.current == state.over) ctx.drawImage(sprite,this.sX , this.sY , this.w , this.h, this.X , this.Y ,2*this.w ,2*this.h ) }
 }
 
 var bird= {
@@ -205,16 +169,9 @@ var bird= {
      {sX : 58 , sY :491  } , 
      {sX : 30 , sY :491  } 
     ] , 
-     w:18 , 
-     h: 12,
-     X : 50,
-     Y : 150 ,
-     speed: 0 ,
-     gravity: 0.25,
-     animationIndex: 0,
-     rotation: 0 ,
-     jump : 4.6, 
-     radius: 12 ,
+     w:18 , h: 12, X : 50, Y : 150 ,
+     speed: 0, gravity: 0.19,
+     animationIndex: 0, rotation: 0 , jump : 3.8, radius: 12,
      draw:function() {
         let bird = this.animation[this.animationIndex]
         ctx.save()
@@ -238,19 +195,23 @@ var bird= {
         else {
             this.speed += this.gravity * (delta * 60); 
             this.Y += this.speed * (delta * 60);
+
             if (this.speed < this.jump){ 
                 this.rotation = -25 * DEGREE
             }else{
                 this.rotation = 90 * DEGREE;
             }
+
+            // برخورد با سقف
+            if(this.Y - this.h/2 <= 0){
+                this.Y = this.h/2;
+                this.speed = 0;
+                DIE.play();
+                state.current = state.over;
+            }
         }
-        if(this.Y - this.h/2 <= 0){
-            this.Y = this.h/2;       // نگه داشتن پرنده روی سقف
-            this.speed = 0;           // توقف سرعت
-            DIE.play();
-            state.current = state.over; //  گیم اور
-        }
-    
+
+        // برخورد با زمین
         if(this.Y + this.h /2>= cvs.clientHeight - fg.h *2 ){
             this.Y = cvs.clientHeight - fg.h *2 - this.h/2 
             this.animationIndex = 1;
@@ -260,11 +221,8 @@ var bird= {
             }
         }
      },
-     flap : function(){
-        this.speed = -this.jump
-     }
+     flap : function(){ this.speed = -this.jump }
 }
-
 var score = {
     best : parseInt(localStorage.getItem("best")) || 0,
     value:0 , 
